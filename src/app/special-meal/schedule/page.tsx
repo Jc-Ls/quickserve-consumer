@@ -346,7 +346,7 @@ function ScheduleContent() {
               <p className="text-sm text-gray-600">Your Custom Delivery Roster is secured. Review your final invoice.</p>
             </div>
 
-            <div className="bg-white p-6 rounded-t-2xl border-x-2 border-t-2 border-gray-200 shadow-xl relative">
+            <div className="bg-white p-6 rounded-t-2xl border-x-2 border-t-2 border-gray-200 shadow-xl relative" id="receipt-card">
               <div className="flex justify-between items-start border-b-2 border-gray-800 pb-4 mb-4">
                 <div>
                   <h3 className="text-2xl font-black text-qsOrange tracking-tighter uppercase">QUICKSERVE</h3>
@@ -398,6 +398,4 @@ function ScheduleContent() {
                   </div>
                 </div>
               </div>
-            </div>
-
-     
+       
