@@ -16,7 +16,7 @@ function ScheduleContent() {
   const maxMealsPerDay = isCorporate ? 1 : 2;
   
   const [cycle, setCycle] = useState<"weekly" | "monthly">("weekly");
-  const maxDays = cycle === "weekly" ? 7 : 30; // 📚 THE MEAL CREDIT QUOTA
+  const maxDays = cycle === "weekly" ? 7 : 30;
 
   const today = new Date().toISOString().split('T')[0];
 
@@ -26,61 +26,66 @@ function ScheduleContent() {
     { id: "evening", label: "Dinner (6-8:30 PM)", icon: "🌙" }
   ];
 
-  const proteins = tier === "premium" ? ["Turkey", "Chicken", "Beef", "Fish"] : tier === "standard" ? ["Chicken", "Beef", "Fish"] : ["Beef", "Fish"]; 
-  const baseMenu = ["Rice & Stew", "Jollof Rice", "Pasta", "Semo", "Amala", "Eba", "Beans & Bread", ...(tier !== "basic" ? ["Fried + Jollof", "Yam Porridge", "Yam + Egg"] : []), ...(tier === "premium" ? ["Basmati", "Poundo"] : [])];
+  const proteins = tier === "premium" 
+    ? ["Turkey", "Chicken", "Beef", "Fish"] 
+    : tier === "standard" 
+      ? ["Chicken", "Beef", "Fish"] 
+      : ["Beef", "Fish"]; 
+      
+  const baseMenu = [
+    "Rice & Stew", "Jollof Rice", "Pasta", "Semo", "Amala", "Eba", "Beans & Bread", 
+    ...(tier !== "basic" ? ["Fried + Jollof", "Yam Porridge", "Yam + Egg"] : []), 
+    ...(tier === "premium" ? ["Basmati", "Poundo"] : [])
+  ];
 
   const [step, setStep] = useState(1);
   const [roster, setRoster] = useState<DayConfig[]>([]);
   const [tempDay, setTempDay] = useState<DayConfig | null>(null);
 
-  const userName = "Jare"; // Mock User
+  const userName = "Jare";
 
-  // --- ENGINE 1: THE "QUICK FILL" FOR LAZY USERS ---
   const autoFillRemainingDays = () => {
     let current = new Date();
-    // If they already picked some dates, start filling after their latest date
     if (roster.length > 0) {
       const maxDateStr = roster.reduce((max, day) => day.date > max ? day.date : max, roster[0].date);
       current = new Date(maxDateStr);
     }
-    current.setDate(current.getDate() + 1); // Start tomorrow
+    current.setDate(current.getDate() + 1);
 
     const newRoster = [...roster];
     while (newRoster.length < maxDays) {
-      // Skip Weekends
       if (current.getDay() !== 0 && current.getDay() !== 6) {
         const dateStr = current.toISOString().split('T')[0];
-        // Ensure we don't duplicate a date they already picked manually
         if (!newRoster.find(d => d.date === dateStr)) {
           newRoster.push({
             id: Date.now() + Math.random(),
             date: dateStr,
             selections: isCorporate 
               ? [{ timeId: "afternoon", meal: baseMenu[0], protein: proteins[0] }] 
-              : [{ timeId: "morning", meal: baseMenu[0], protein: proteins[0] }, { timeId: "evening", meal: baseMenu[0], protein: proteins[0] }]
+              : [
+                  { timeId: "morning", meal: baseMenu[0], protein: proteins[0] }, 
+                  { timeId: "evening", meal: baseMenu[0], protein: proteins[0] }
+                ]
           });
         }
       }
       current.setDate(current.getDate() + 1);
     }
-    // Sort by date so it looks neat
     setRoster(newRoster.sort((a,b) => a.date.localeCompare(b.date)));
   };
 
-  // --- ENGINE 2: DAY EDITOR FUNCTIONS ---
   const openNewDayEditor = () => {
     setTempDay({ id: Date.now(), date: "", selections: [] });
   };
 
   const openEditExistingDay = (day: DayConfig) => {
-    setTempDay(JSON.parse(JSON.stringify(day))); // Deep copy
+    setTempDay(JSON.parse(JSON.stringify(day)));
   };
 
   const saveDayEdit = () => {
     if (!tempDay || !tempDay.date) { alert("Please select a date!"); return; }
     if (tempDay.selections.length === 0) { alert(`You must select at least one time slot!`); return; }
     
-    // Check if they picked a date that is already in their roster
     const existingDateIndex = roster.findIndex(d => d.date === tempDay.date && d.id !== tempDay.id);
     if (existingDateIndex !== -1) {
       alert("You already have a delivery scheduled for this date. Please pick another date or edit the existing one.");
@@ -91,12 +96,11 @@ function ScheduleContent() {
     let updatedRoster = [...roster];
     
     if (existingIndex !== -1) {
-      updatedRoster[existingIndex] = tempDay; // Update existing
+      updatedRoster[existingIndex] = tempDay;
     } else {
-      updatedRoster.push(tempDay); // Add new
+      updatedRoster.push(tempDay);
     }
     
-    // Sort chronologically and save
     setRoster(updatedRoster.sort((a,b) => a.date.localeCompare(b.date)));
     setTempDay(null);
   };
@@ -108,7 +112,10 @@ function ScheduleContent() {
       setTempDay({ ...tempDay, selections: tempDay.selections.filter(s => s.timeId !== timeId) });
     } else {
       if (tempDay.selections.length < maxMealsPerDay) {
-        setTempDay({ ...tempDay, selections: [...tempDay.selections, { timeId, meal: baseMenu[0], protein: proteins[0] }] });
+        setTempDay({ 
+          ...tempDay, 
+          selections: [...tempDay.selections, { timeId, meal: baseMenu[0], protein: proteins[0] }] 
+        });
       } else {
         alert(`Golden Rule: ${tab.toUpperCase()} plan only allows ${maxMealsPerDay} meal(s) per day!`);
       }
@@ -136,9 +143,11 @@ function ScheduleContent() {
   return (
     <main className="max-w-md mx-auto bg-[#F8F9FA] min-h-screen relative pb-28 shadow-2xl">
       
-      {/* HEADER */}
       <header className="flex items-center p-4 bg-white sticky top-0 z-10 border-b border-gray-100 shadow-sm print:hidden">
-        <button onClick={() => step > 1 && !tempDay ? setStep(step - 1) : tempDay ? setTempDay(null) : window.history.back()} className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center border border-gray-200 mr-4 active:scale-90">
+        <button 
+          onClick={() => step > 1 && !tempDay ? setStep(step - 1) : tempDay ? setTempDay(null) : window.history.back()} 
+          className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center border border-gray-200 mr-4 active:scale-90"
+        >
           <span className="text-xl">←</span>
         </button>
         <div>
@@ -149,7 +158,6 @@ function ScheduleContent() {
 
       <div className="p-4 space-y-6">
         
-        {/* ================= STEP 1: BUY CREDITS ================= */}
         {step === 1 && (
           <div className="animate-in fade-in slide-in-from-right-4 duration-300">
             <h2 className="text-xl font-black text-qsDark mb-4">Choose your Meal Credits.</h2>
@@ -157,37 +165,52 @@ function ScheduleContent() {
             <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm mb-6">
               <label className="block text-xs font-bold text-gray-500 uppercase mb-3">Select Billing Cycle</label>
               <div className="grid grid-cols-2 gap-3">
-                <button onClick={() => setCycle("weekly")} className={`p-4 rounded-xl border-2 flex flex-col items-center justify-center transition-all ${cycle === "weekly" ? 'border-qsOrange bg-orange-50 text-qsOrange' : 'border-gray-100 text-gray-500'}`}>
+                <button 
+                  onClick={() => setCycle("weekly")} 
+                  className={`p-4 rounded-xl border-2 flex flex-col items-center justify-center transition-all ${cycle === "weekly" ? 'border-qsOrange bg-orange-50 text-qsOrange' : 'border-gray-100 text-gray-500'}`}
+                >
                   <span className="text-2xl font-black mb-1">7</span>
                   <span className="text-[10px] uppercase font-bold tracking-widest">Delivery Days</span>
                 </button>
-                <button onClick={() => setCycle("monthly")} className={`p-4 rounded-xl border-2 flex flex-col items-center justify-center transition-all ${cycle === "monthly" ? 'border-qsOrange bg-orange-50 text-qsOrange' : 'border-gray-100 text-gray-500'}`}>
+                <button 
+                  onClick={() => setCycle("monthly")} 
+                  className={`p-4 rounded-xl border-2 flex flex-col items-center justify-center transition-all ${cycle === "monthly" ? 'border-qsOrange bg-orange-50 text-qsOrange' : 'border-gray-100 text-gray-500'}`}
+                >
                   <span className="text-2xl font-black mb-1">30</span>
                   <span className="text-[10px] uppercase font-bold tracking-widest">Delivery Days</span>
                 </button>
               </div>
             </div>
 
-            <button onClick={() => setStep(2)} className="w-full mt-4 py-4 rounded-xl font-black text-lg bg-qsDark text-white active:scale-95 transition-transform">
+            <button 
+              onClick={() => setStep(2)} 
+              className="w-full mt-4 py-4 rounded-xl font-black text-lg bg-qsDark text-white active:scale-95 transition-transform"
+            >
               Next: Pick Delivery Dates →
             </button>
           </div>
         )}
 
-        {/* ================= STEP 2: THE ROSTER DASHBOARD ================= */}
         {step === 2 && (
           <div className="animate-in fade-in slide-in-from-right-4 duration-300">
             
-            {/* VIEW A: THE LIST */}
             {!tempDay ? (
               <>
                 <div className="bg-qsDark text-white p-5 rounded-2xl shadow-lg mb-6 flex justify-between items-center">
                   <div>
                     <h2 className="text-xs text-gray-400 font-bold uppercase tracking-widest mb-1">Days Scheduled</h2>
-                    <p className="text-3xl font-black"><span className={roster.length === maxDays ? "text-green-400" : "text-qsOrange"}>{roster.length}</span> <span className="text-lg text-gray-400">/ {maxDays}</span></p>
+                    <p className="text-3xl font-black">
+                      <span className={roster.length === maxDays ? "text-green-400" : "text-qsOrange"}>
+                        {roster.length}
+                      </span> 
+                      <span className="text-lg text-gray-400"> / {maxDays}</span>
+                    </p>
                   </div>
                   {roster.length < maxDays && (
-                    <button onClick={autoFillRemainingDays} className="bg-white/10 hover:bg-white/20 px-3 py-2 rounded-lg text-xs font-bold transition-colors border border-white/20">
+                    <button 
+                      onClick={autoFillRemainingDays} 
+                      className="bg-white/10 hover:bg-white/20 px-3 py-2 rounded-lg text-xs font-bold transition-colors border border-white/20"
+                    >
                       ⚡ Quick Fill
                     </button>
                   )}
@@ -202,10 +225,12 @@ function ScheduleContent() {
                     </div>
                   )}
 
-                  {roster.map((day, idx) => (
+                  {roster.map((day) => (
                     <div key={day.id} className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col relative overflow-hidden">
                       <div className="flex justify-between items-center mb-3 border-b border-gray-100 pb-2">
-                        <span className="font-black text-qsDark">{new Date(day.date).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}</span>
+                        <span className="font-black text-qsDark">
+                          {new Date(day.date).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}
+                        </span>
                         <div className="flex gap-2">
                           <button onClick={() => openEditExistingDay(day)} className="text-xs bg-gray-100 text-gray-600 font-bold px-3 py-1 rounded-lg">Edit</button>
                           <button onClick={() => removeDay(day.id)} className="text-xs bg-red-50 text-red-500 font-bold px-2 py-1 rounded-lg">✕</button>
@@ -214,7 +239,9 @@ function ScheduleContent() {
                       <div className="space-y-2">
                         {day.selections.map(sel => (
                           <div key={sel.timeId} className="flex justify-between items-center bg-gray-50 p-2 rounded-lg text-sm">
-                            <span className="font-bold text-gray-700">{sel.meal} <span className="text-qsOrange text-xs">+ {sel.protein}</span></span>
+                            <span className="font-bold text-gray-700">
+                              {sel.meal} <span className="text-qsOrange text-xs">+ {sel.protein}</span>
+                            </span>
                             <span className="text-[10px] font-black text-gray-500 uppercase">{sel.timeId}</span>
                           </div>
                         ))}
@@ -224,25 +251,36 @@ function ScheduleContent() {
                 </div>
 
                 {roster.length < maxDays ? (
-                  <button onClick={openNewDayEditor} className="w-full mt-4 py-4 rounded-xl font-black text-qsOrange bg-orange-50 border-2 border-dashed border-qsOrange active:scale-95 transition-transform flex items-center justify-center gap-2">
+                  <button 
+                    onClick={openNewDayEditor} 
+                    className="w-full mt-4 py-4 rounded-xl font-black text-qsOrange bg-orange-50 border-2 border-dashed border-qsOrange active:scale-95 transition-transform flex items-center justify-center gap-2"
+                  >
                     <span className="text-2xl leading-none">+</span> Add a Delivery Day
                   </button>
                 ) : (
-                  <button onClick={() => setStep(3)} className="w-full mt-6 py-4 rounded-xl font-black text-lg bg-green-600 text-white shadow-[0_10px_20px_rgba(22,163,74,0.3)] active:scale-95 transition-transform">
+                  <button 
+                    onClick={() => setStep(3)} 
+                    className="w-full mt-6 py-4 rounded-xl font-black text-lg bg-green-600 text-white shadow-[0_10px_20px_rgba(22,163,74,0.3)] active:scale-95 transition-transform"
+                  >
                     Proceed to Checkout →
                   </button>
                 )}
               </>
             ) : 
             
-            /* VIEW B: THE ISOLATED DAY EDITOR */
             (
               <div className="animate-in zoom-in-95 duration-200">
                 <h2 className="text-xl font-black text-qsDark mb-4">Customize Delivery Day</h2>
                 
                 <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm mb-4">
                   <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Select Any Future Date</label>
-                  <input type="date" min={today} value={tempDay.date} onChange={(e) => setTempDay({...tempDay, date: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 text-qsDark font-bold focus:outline-none" />
+                  <input 
+                    type="date" 
+                    min={today} 
+                    value={tempDay.date} 
+                    onChange={(e) => setTempDay({...tempDay, date: e.target.value})} 
+                    className="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 text-qsDark font-bold focus:outline-none" 
+                  />
                 </div>
 
                 <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm mb-4">
@@ -251,7 +289,11 @@ function ScheduleContent() {
                     {timeSlots.map(slot => {
                       const isSelected = tempDay.selections.some(s => s.timeId === slot.id);
                       return (
-                        <button key={slot.id} onClick={() => toggleTempTimeSlot(slot.id)} className={`flex-1 py-2 rounded-lg border text-xs font-bold transition-all ${isSelected ? 'bg-orange-50 border-qsOrange text-qsOrange' : 'bg-white border-gray-200 text-gray-500'}`}>
+                        <button 
+                          key={slot.id} 
+                          onClick={() => toggleTempTimeSlot(slot.id)} 
+                          className={`flex-1 py-2 rounded-lg border text-xs font-bold transition-all ${isSelected ? 'bg-orange-50 border-qsOrange text-qsOrange' : 'bg-white border-gray-200 text-gray-500'}`}
+                        >
                           {slot.icon} {slot.id.charAt(0).toUpperCase() + slot.id.slice(1)}
                         </button>
                       );
@@ -262,21 +304,34 @@ function ScheduleContent() {
                 {tempDay.selections.map(sel => (
                   <div key={sel.timeId} className="bg-white p-5 rounded-xl border-l-4 border-qsOrange shadow-sm mb-4">
                     <span className="text-xs font-black text-qsOrange uppercase tracking-widest mb-3 block">{sel.timeId} MEAL</span>
-                    <select value={sel.meal} onChange={(e) => updateTempSelection(sel.timeId, "meal", e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm font-bold mb-3">
+                    <select 
+                      value={sel.meal} 
+                      onChange={(e) => updateTempSelection(sel.timeId, "meal", e.target.value)} 
+                      className="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm font-bold mb-3"
+                    >
                       <option value="">-- Choose Meal --</option>
                       {baseMenu.map((meal, idx) => <option key={idx} value={meal}>{meal}</option>)}
                     </select>
                     {sel.meal && (
                       <div className="flex gap-2 overflow-x-auto pb-1">
                         {proteins.map(p => (
-                          <button key={p} onClick={() => updateTempSelection(sel.timeId, "protein", p)} className={`px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap border ${sel.protein === p ? 'bg-qsDark text-white border-qsDark' : 'bg-white text-gray-600 border-gray-200'}`}>{p}</button>
+                          <button 
+                            key={p} 
+                            onClick={() => updateTempSelection(sel.timeId, "protein", p)} 
+                            className={`px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap border ${sel.protein === p ? 'bg-qsDark text-white border-qsDark' : 'bg-white text-gray-600 border-gray-200'}`}
+                          >
+                            {p}
+                          </button>
                         ))}
                       </div>
                     )}
                   </div>
                 ))}
 
-                <button onClick={saveDayEdit} className="w-full mt-4 py-4 rounded-xl font-black text-lg bg-green-600 text-white shadow-lg active:scale-95">
+                <button 
+                  onClick={saveDayEdit} 
+                  className="w-full mt-4 py-4 rounded-xl font-black text-lg bg-green-600 text-white shadow-lg active:scale-95"
+                >
                   Save Delivery Day ✔️
                 </button>
               </div>
@@ -284,7 +339,6 @@ function ScheduleContent() {
           </div>
         )}
 
-        {/* ================= STEP 3: THE INVOICE ================= */}
         {step === 3 && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
             <div className="mb-6 print:hidden">
@@ -292,7 +346,7 @@ function ScheduleContent() {
               <p className="text-sm text-gray-600">Your Custom Delivery Roster is secured. Review your final invoice.</p>
             </div>
 
-            <div className="bg-white p-6 rounded-t-2xl border-x-2 border-t-2 border-gray-200 shadow-xl relative" id="receipt-card">
+            <div className="bg-white p-6 rounded-t-2xl border-x-2 border-t-2 border-gray-200 shadow-xl relative">
               <div className="flex justify-between items-start border-b-2 border-gray-800 pb-4 mb-4">
                 <div>
                   <h3 className="text-2xl font-black text-qsOrange tracking-tighter uppercase">QUICKSERVE</h3>
@@ -320,10 +374,14 @@ function ScheduleContent() {
                   <span className="text-xs font-black text-gray-400 uppercase tracking-widest block mb-3">Customized Roster Log</span>
                   {roster.map(day => (
                     <div key={day.id} className="border-b border-gray-100 pb-3 mb-3 last:border-0 last:mb-0 last:pb-0">
-                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{new Date(day.date).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">
+                        {new Date(day.date).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
+                      </p>
                       {day.selections.map(sel => (
                         <div key={sel.timeId} className="flex justify-between items-center pl-2 border-l-2 border-qsOrange mb-1">
-                          <span className="font-bold text-qsDark text-xs">{sel.meal} <span className="text-gray-500">+ {sel.protein}</span></span>
+                          <span className="font-bold text-qsDark text-xs">
+                            {sel.meal} <span className="text-gray-500">+ {sel.protein}</span>
+                          </span>
                           <span className="text-[10px] bg-gray-100 px-2 py-0.5 rounded font-bold uppercase">{sel.timeId}</span>
                         </div>
                       ))}
@@ -342,7 +400,4 @@ function ScheduleContent() {
               </div>
             </div>
 
-            <div className="w-full h-4 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIxMCI+PHBvbHlnb24gcG9pbnRzPSIwLDAgMTAsMTAgMjAsMCIgZmlsbD0iI0ZGRkZGRiIvPjwvc3ZnPg==')] mb-6 shadow-xl print:hidden"></div>
-
-            <div className="space-y-3 print:hidden">
-              <button onClick={() => window.print()} className="w-full py-4 rounded-xl font-bold text-qsDark bg-gray-200 active:scale-95 transition-transform flex items-center justify-cent
+     
