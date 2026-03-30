@@ -50,10 +50,10 @@ export default function SpecialMealPage() {
               <li className="flex items-center gap-2"><span className="text-green-500">✓</span> 1 Premium Protein (Chicken/Beef/Fish)</li>
             </ul>
           </div>
-          
-          <button className="w-full bg-qsDark text-white font-bold py-3 rounded-xl hover:bg-black transition-colors">
+                    <Link href="/special-meal/corporate" className="block text-center w-full bg-qsDark text-white font-bold py-3 rounded-xl hover:bg-black transition-colors">
             Select Corporate Plan
-          </button>
+          </Link>
+
         </div>
 
         {/* Student Plan Card */}
@@ -76,9 +76,10 @@ export default function SpecialMealPage() {
             </ul>
           </div>
           
-          <button className="w-full bg-gray-100 text-qsDark font-bold py-3 rounded-xl border border-gray-200 hover:bg-gray-200 transition-colors">
+                    <Link href="/special-meal/student" className="block text-center w-full bg-gray-100 text-qsDark font-bold py-3 rounded-xl border border-gray-200 hover:bg-gray-200 transition-colors">
             Select Student Plan
-          </button>
+          </Link>
+
         </div>
 
       </div>
